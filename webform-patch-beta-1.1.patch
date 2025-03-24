@@ -1,22 +1,22 @@
 diff --git a/js/webform.states.js b/js/webform.states.js
-index c51a1f737..9bceff863 100644
+index 05ae9521c..c7729b006 100644
 --- a/js/webform.states.js
 +++ b/js/webform.states.js
-@@ -314,6 +314,73 @@
+@@ -312,6 +312,67 @@
    // Behaviors.
    /* ************************************************************************ */
- 
+
 +  /**
 +   * Attaches the webform custom states which includes 'set to'.
 +   *
 +   * @type {Drupal~behavior}
 +   *
 +   * @prop {Drupal~behaviorAttach} attach
-+   *   Attaches states behaviors.
++   *   Attach states behaviors.
 +   */
 +  Drupal.behaviors.webformStates = {
 +    attach(context, settings) {
-+      var $states = $(context).find('[data-drupal-states]');
++      var $states = $(context).find('[data-drupal-states]');console.log($states);
 +      for (var i = 0; i < $states.length; i++) {
 +        var config = JSON.parse($states[i].getAttribute('data-drupal-states'));
 +        Object.keys(config || {}).forEach(function (state) {
@@ -31,15 +31,8 @@ index c51a1f737..9bceff863 100644
 +                      isCheckboxMultiple = $(e.target).filter('.webform-type-checkboxes').find('input[type="checkbox"]'),
 +                      isStandardElement = $(e.target).filter('select, input, textarea, button');
 +                  /*
-+                  * Important to check elements by type at begining
++                  * Important to check elements by type at beginning
 +                  * */
-+                  console.log({
-+                    element: e.target,
-+                    isCheckboxElement: isCheckboxElement,
-+                    isRadioElement: isRadioElement,
-+                    isCheckboxMultiple: isCheckboxMultiple,
-+                    isStandardElement: isStandardElement,
-+                  });
 +                  if(isCheckboxMultiple.length > 0) {
 +                    //Allow to set more than one element
 +                    let setValues = setToValue.split(',')
@@ -73,29 +66,31 @@ index c51a1f737..9bceff863 100644
 +      }
 +    },
 +  };
++
    /**
     * Adds HTML5 validation to required checkboxes.
     *
-@@ -598,7 +665,21 @@
-   /* ************************************************************************ */
+@@ -597,6 +658,23 @@
    // Helper functions.
    /* ************************************************************************ */
--
+
 +  /**
-+    * Safely decode HTML entities.
-+    *
-+    * @param {string} text
-+    *   Text with encoded HTML entities.
-+    * @returns {string}
-+    *   Text with decoded HTML entities.
-+    *
-+    * @see https://stackoverflow.com/questions/1147359/how-to-decode-html-entities-using-jquery/1395954#1395954
-+    */
++   * Safely decode HTML entities.
++   *
++   * @param {string} text
++   *   Text with encoded HTML entities.
++   * @returns {string}
++   *   Text with decoded HTML entities.
++   *
++   * @see https://stackoverflow.com/questions/1147359/how-to-decode-html-entities-using-jquery/1395954#1395954
++   */
 +  function decodeEntities(text) {
-+    var textArea = document.createElement('textarea');
++    let textArea = document.createElement('textarea');
 +    textArea.innerHTML = text;
++
 +    return textArea.value;
 +  }
++
    /**
     * Toggle an input's required attributes.
     *
@@ -114,7 +109,7 @@ index 5e07f18cd..02392cc1e 100644
        }
        $row['conditional'] = [
 diff --git a/src/Element/WebformElementStates.php b/src/Element/WebformElementStates.php
-index 0b0d7aeb0..f40dd2069 100644
+index 0b0d7aeb0..ac100f790 100644
 --- a/src/Element/WebformElementStates.php
 +++ b/src/Element/WebformElementStates.php
 @@ -156,6 +156,7 @@ class WebformElementStates extends FormElementBase {
@@ -158,7 +153,7 @@ index 0b0d7aeb0..f40dd2069 100644
 +      '#title_display' => 'invisible',
 +      '#size' => 10,
 +      '#default_value' => $state['value'],
-+      '#placeholder' => t('Enter valueâ€¦'),
++      '#placeholder' => t('Enter value¦'),
 +      '#parents' => [$element_name, 'states', $row_index , 'value'],
 +      '#states' => [
 +        'visible' => [
@@ -183,13 +178,13 @@ index 0b0d7aeb0..f40dd2069 100644
 +    self::processSetToState($states);
      return $states;
    }
- 
+
 @@ -978,6 +1000,9 @@ class WebformElementStates extends FormElementBase {
      foreach ($values as $value) {
        if (isset($value['state'])) {
          $index++;
-+        if ($value['state'] == 'set') {
-+          $value['state'] = $value['state'] . '|' . str_replace(' ', '&nbsp;', htmlentities($value['value']));
++        if ($value['state'] === 'set') {
++          $value['state'] .= '|' . str_replace(' ', '&nbsp;', htmlentities($value['value']));
 +        }
          $states[$index] = [
            'state' => $value['state'],
@@ -198,7 +193,7 @@ index 0b0d7aeb0..f40dd2069 100644
      $state_options = OptGroup::flattenOptions($element['#state_options']);
      $states = $element['#default_value'];
      foreach ($states as $state => $conditions) {
-+      if (strpos($state, 'set|') !== FALSE) {
++      if (str_contains($state, 'set|')) {
 +        $state = 'set';
 +      }
        if (!isset($state_options[$state])) {
@@ -212,12 +207,15 @@ index 0b0d7aeb0..f40dd2069 100644
        ],
      ];
    }
-@@ -1112,5 +1141,14 @@ class WebformElementStates extends FormElementBase {
-       '!between' => t('Not between'),
+@@ -1113,4 +1142,19 @@ class WebformElementStates extends FormElementBase {
      ];
    }
--
-+  protected static function processSetToState(&$states) {
+
++  /**
++   * @param $states
++   * @return void
++   */
++  protected static function processSetToState(&$states): void {
 +    foreach ($states as &$state) {
 +      if (!str_contains($state['state'], 'set|')) {
 +        continue;
@@ -227,9 +225,10 @@ index 0b0d7aeb0..f40dd2069 100644
 +      $state['value'] = empty($state_values[1]) ? NULL : html_entity_decode($state_values[1]);
 +    }
 +  }
++
  }
 diff --git a/src/Plugin/WebformElement/Hidden.php b/src/Plugin/WebformElement/Hidden.php
-index 303fcfce7..9e64fe1c2 100644
+index 303fcfce7..2c4b1396f 100644
 --- a/src/Plugin/WebformElement/Hidden.php
 +++ b/src/Plugin/WebformElement/Hidden.php
 @@ -35,6 +35,9 @@ class Hidden extends TextBase {
@@ -241,15 +240,15 @@ index 303fcfce7..9e64fe1c2 100644
 +      'states_clear' => TRUE,
      ] + $access_properties;
    }
- 
-@@ -74,5 +77,16 @@ class Hidden extends TextBase {
- 
+
+@@ -75,4 +78,16 @@ class Hidden extends TextBase {
      return $form;
    }
+
 +  /****************************************************************************/
 +  // #states API methods.
 +  /****************************************************************************/
- 
++
 +  /**
 +   * {@inheritdoc}
 +   */
@@ -260,20 +259,30 @@ index 303fcfce7..9e64fe1c2 100644
 +  }
  }
 diff --git a/src/Plugin/WebformElementBase.php b/src/Plugin/WebformElementBase.php
-index 47e1db661..a95368f41 100644
+index ee6edc6c1..9ec79448f 100644
 --- a/src/Plugin/WebformElementBase.php
 +++ b/src/Plugin/WebformElementBase.php
-@@ -28,6 +28,9 @@ use Drupal\webform\Plugin\WebformElement\ContainerBase;
- use Drupal\webform\Plugin\WebformElement\Details;
- use Drupal\webform\Plugin\WebformElement\WebformCompositeBase;
- use Drupal\webform\Plugin\WebformElement\WebformEmailConfirm;
+@@ -40,6 +40,9 @@ use Drupal\webform\WebformInterface;
+ use Drupal\webform\WebformSubmissionConditionsValidator;
+ use Drupal\webform\WebformSubmissionInterface;
+ use Symfony\Component\DependencyInjection\ContainerInterface;
 +use Drupal\webform\Plugin\WebformElement\BooleanBase;
 +use Drupal\webform\Plugin\WebformElement\OptionsBase;
 +use Drupal\webform\Plugin\WebformElement\TextBase;
- use Drupal\webform\Twig\WebformTwigExtension;
- use Drupal\webform\Utility\WebformArrayHelper;
- use Drupal\webform\Utility\WebformDialogHelper;
-@@ -2194,7 +2197,12 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
+
+ /**
+  * Provides a base class for a webform element.
+@@ -1020,6 +1023,9 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
+     if (isset($element['#unique']) && $webform_submission) {
+       $element['#element_validate'][] = [get_class($this), 'validateUnique'];
+     }
++    if ($webform_submission && $this->hasSetConditions($element['#states'] ?? [])) {
++      $element['#element_validate'][] = [get_class($this), 'validateSetTo'];
++    }
+   }
+
+   /**
+@@ -2194,7 +2200,12 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
          'unchecked' => $this->t('Unchecked', [], ['context' => 'Remove check mark']),
        ];
      }
@@ -287,3 +296,59 @@ index 47e1db661..a95368f41 100644
      // Set expanded/collapsed states for any details element.
      if ($this instanceof Details) {
        $states[$state_optgroup] += [
+@@ -3779,5 +3790,55 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
+   public static function trustedCallbacks() {
+     return ['preRenderFixStatesWrapper', 'preRenderFixFlexboxWrapper', 'preRenderWebformCompositeFormElement'];
+   }
++  /**
++   * Form API callback. Validate element #status set:? value.
++   *
++   * @param array $element
++   * @param \Drupal\Core\Form\FormStateInterface $form_state
++   */
++  public static function validateSetTo(array &$element, FormStateInterface $form_state): void {
++    foreach($element['#states'] as $state => $conditions) {
++      if(str_contains($state, 'set|')) {
++        $setValue = FALSE;
++        foreach($conditions as $field => $condition) {
++          foreach($condition as $conditionState => $conditionValue) {
++            preg_match('@name=\"([^"]+)\"@m', $field, $match);
++            if(!empty($match[1])) {
++              $value = $form_state->getValue($match[1]);
++              switch($conditionState) {
++                case 'filled':
++                case 'checked':
++                  $setValue = !empty($value);
++                  break;
++                case 'empty':
++                case 'unchecked':
++                  $setValue = empty($value);
++                  break;
++                case 'value':
++                  $setValue = ((string)$value === (string)$conditionValue);
++                  break;
++              }
++            }
++          }
++        }
++        if($setValue) {
++          $element['#value'] = substr($state, 4);
++          $form_state->setValue($element['#webform_key'], $element['#value']);
++        }
++      }
++    }
++  }
+
++  /**
++   * Validate if it has any set|? state
++   *
++   * @param array $states
++   *
++   * @return bool
++   */
++  private function hasSetConditions(array $states): bool {
++    return count(array_filter(array_keys($states), static function ($state) {
++        return str_contains($state, 'set|');
++      })) > 0;
++  }
+ }
