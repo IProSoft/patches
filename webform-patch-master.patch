@@ -1,11 +1,11 @@
 diff --git a/js/webform.states.js b/js/webform.states.js
-index 05ae9521c..c7729b006 100644
+index 05ae9521c..426dcb388 100644
 --- a/js/webform.states.js
 +++ b/js/webform.states.js
-@@ -312,6 +312,67 @@
+@@ -312,6 +312,68 @@
    // Behaviors.
    /* ************************************************************************ */
-
+ 
 +  /**
 +   * Attaches the webform custom states which includes 'set to'.
 +   *
@@ -24,40 +24,41 @@ index 05ae9521c..c7729b006 100644
 +          if (state.indexOf('set|') === 0) {
 +            $document.on('state:' + state, function (e) {
 +              if (e.trigger && $(e.target).isWebform()) {
-+                if (e.value) {
-+                  let setToValue = decodeEntities(state.replace('set|', '')),
-+                      isCheckboxElement = $(e.target).filter('input[type="checkbox"]'),
-+                      isRadioElement = $(e.target).filter('.webform-type-radios').find('input[type="radio"]'),
-+                      isCheckboxMultiple = $(e.target).filter('.webform-type-checkboxes').find('input[type="checkbox"]'),
-+                      isStandardElement = $(e.target).filter('select, input, textarea, button');
-+                  /*
-+                  * Important to check elements by type at beginning
-+                  * */
-+                  if(isCheckboxMultiple.length > 0) {
-+                    //Allow to set more than one element
-+                    let setValues = setToValue.split(',')
-+                    isCheckboxMultiple.each(function(i, element){
-+                      let found = $(this);
++                let setToValue = decodeEntities(state.replace('set|', '')),
++                    isCheckboxElement = $(e.target).filter('input[type="checkbox"]'),
++                    isRadioElement = $(e.target).filter('.webform-type-radios').find('input[type="radio"]'),
++                    isCheckboxMultiple = $(e.target).filter('.webform-type-checkboxes').find('input[type="checkbox"]'),
++                    isStandardElement = $(e.target).filter('select, input, textarea, button'),
++                    setToState = e.value;
++                /*
++                * Important to check elements by type at beginning
++                * */
++                if(isCheckboxMultiple.length > 0) {
++                  //Allow to set more than one element
++                  let setValues = setToValue.split(',')
++                  isCheckboxMultiple.each(function(i, element){
++                    let found = $(this);
++                    if(setValues.includes(found.val())) {
 +                      found.prop(
 +                          'checked',
-+                          setValues.includes(found.val())
++                          setToState
 +                      ).change();
-+                    });
-+                  } else if(isCheckboxElement.length > 0) {
-+                    let found = isCheckboxElement.parent().find('[value="' + setToValue + '"]');
-+                    if(found.length === 0){
-+                      return console.log('SetTo: Element checkbox not found with value ' + setToValue);
 +                    }
-+                    found.prop('checked', true).change();
-+                  } else if(isRadioElement.length > 0) {
-+                    let found = isRadioElement.parent().find('[value="' + setToValue + '"]');
-+                    if(found.length === 0){
-+                      return console.log('SetTo: Element radio not found with value ' + setToValue);
-+                    }
-+                    found.prop('checked', true).change();
-+                  } else if(isStandardElement.length > 0) {
-+                    isStandardElement.val(setToValue).change();
++                  });
++                } else if(isCheckboxElement.length > 0) {
++                  let found = isCheckboxElement.parent().find('[value="' + setToValue + '"]');
++                  if(found.length === 0){
++                    return console.log('SetTo: Element checkbox not found with value ' + setToValue);
 +                  }
++                  found.prop('checked', setToState).change();
++                } else if(isRadioElement.length > 0) {
++                  let found = isRadioElement.parent().find('[value="' + setToValue + '"]');
++                  if(found.length === 0){
++                    return console.log('SetTo: Element radio not found with value ' + setToValue);
++                  }
++                  found.prop('checked', setToState).change();
++                } else if(isStandardElement.length > 0) {
++                  isStandardElement.val(setToState ? setToValue : '').change();
 +                }
 +              }
 +            });
@@ -70,10 +71,10 @@ index 05ae9521c..c7729b006 100644
    /**
     * Adds HTML5 validation to required checkboxes.
     *
-@@ -597,6 +658,23 @@
+@@ -597,6 +659,23 @@
    // Helper functions.
    /* ************************************************************************ */
-
+ 
 +  /**
 +   * Safely decode HTML entities.
 +   *
@@ -178,7 +179,7 @@ index 0b0d7aeb0..ac100f790 100644
 +    self::processSetToState($states);
      return $states;
    }
-
+ 
 @@ -978,6 +1000,9 @@ class WebformElementStates extends FormElementBase {
      foreach ($values as $value) {
        if (isset($value['state'])) {
@@ -210,7 +211,7 @@ index 0b0d7aeb0..ac100f790 100644
 @@ -1113,4 +1142,19 @@ class WebformElementStates extends FormElementBase {
      ];
    }
-
+ 
 +  /**
 +   * @param $states
 +   * @return void
@@ -240,11 +241,11 @@ index 303fcfce7..2c4b1396f 100644
 +      'states_clear' => TRUE,
      ] + $access_properties;
    }
-
+ 
 @@ -75,4 +78,16 @@ class Hidden extends TextBase {
      return $form;
    }
-
+ 
 +  /****************************************************************************/
 +  // #states API methods.
 +  /****************************************************************************/
@@ -269,7 +270,7 @@ index ee6edc6c1..9ec79448f 100644
 +use Drupal\webform\Plugin\WebformElement\BooleanBase;
 +use Drupal\webform\Plugin\WebformElement\OptionsBase;
 +use Drupal\webform\Plugin\WebformElement\TextBase;
-
+ 
  /**
   * Provides a base class for a webform element.
 @@ -1020,6 +1023,9 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
@@ -280,7 +281,7 @@ index ee6edc6c1..9ec79448f 100644
 +      $element['#element_validate'][] = [get_class($this), 'validateSetTo'];
 +    }
    }
-
+ 
    /**
 @@ -2194,7 +2200,12 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
          'unchecked' => $this->t('Unchecked', [], ['context' => 'Remove check mark']),
@@ -338,7 +339,7 @@ index ee6edc6c1..9ec79448f 100644
 +      }
 +    }
 +  }
-
+ 
 +  /**
 +   * Validate if it has any set|? state
 +   *
