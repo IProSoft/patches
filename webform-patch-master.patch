@@ -260,7 +260,7 @@ index 303fcfce7..2c4b1396f 100644
 +  }
  }
 diff --git a/src/Plugin/WebformElementBase.php b/src/Plugin/WebformElementBase.php
-index ee6edc6c1..a30a60b7c 100644
+index ee6edc6c1..c4e9555e2 100644
 --- a/src/Plugin/WebformElementBase.php
 +++ b/src/Plugin/WebformElementBase.php
 @@ -40,6 +40,9 @@ use Drupal\webform\WebformInterface;
@@ -297,12 +297,14 @@ index ee6edc6c1..a30a60b7c 100644
      // Set expanded/collapsed states for any details element.
      if ($this instanceof Details) {
        $states[$state_optgroup] += [
-@@ -3779,5 +3790,130 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
-   public static function trustedCallbacks() {
+@@ -3780,4 +3791,118 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
      return ['preRenderFixStatesWrapper', 'preRenderFixFlexboxWrapper', 'preRenderWebformCompositeFormElement'];
    }
+ 
 +  /**
 +   * Form API callback. Validate element #status set:? value.
++   *
++   * \Drupal\webform\WebformSubmissionConditionsValidator::checkConditionTrigger
 +   *
 +   * @param array $element
 +   * @param \Drupal\Core\Form\FormStateInterface $form_state
@@ -310,12 +312,11 @@ index ee6edc6c1..a30a60b7c 100644
 +  public static function validateSetTo(array &$element, FormStateInterface $form_state): void {
 +    foreach($element['#states'] as $state => $conditions) {
 +      if(str_contains($state, 'set|')) {
-+        $setValue = FALSE;
 +        $parsed = self::parseSetConditions($conditions);
-+        foreach($parsed['elements'] as $field => $condition) {
-+          foreach($condition as $conditionState => $conditionValue) {
++        foreach($parsed['elements'] as $key => $parse) {
++          foreach($parse['condition'] as $conditionState => $conditionValue) {
 +            $setValue = NULL;
-+            preg_match('@name=\"([^"]+)\"@m', $field, $match);
++            preg_match('@name=\"([^"]+)\"@m', $parse['field'], $match);
 +            if(!empty($match[1])) {
 +              $value = $form_state->getValue($match[1]);
 +              switch($conditionState) {
@@ -343,7 +344,7 @@ index ee6edc6c1..a30a60b7c 100644
 +                  break;
 +              }
 +            }
-+            $parsed['elements'][$field] = $setValue;
++            $parsed['elements'][$key] = $setValue;
 +          }
 +        }
 +        if(self::validSetConditions($parsed)) {
@@ -354,21 +355,6 @@ index ee6edc6c1..a30a60b7c 100644
 +    }
 +  }
 +
-+  /**
-+   * Walidujemy wartości jako tablice
-+   *
-+   * @throws \JsonException
-+   */
-+  public static function validateSetToWithMultiple($value, $conditionValue): bool {
-+    $values = [$conditionValue];
-+    if(str_starts_with($conditionValue, '[')) {
-+      try {
-+        $values = json_decode($conditionValue, TRUE, 512, JSON_THROW_ON_ERROR);
-+      } catch(\Exception $e) {}
-+    }
-+    return in_array($value, $values, true);
-+  }
- 
 +  /**
 +   * Validate if it has any set|? state
 +   *
@@ -390,15 +376,13 @@ index ee6edc6c1..a30a60b7c 100644
 +   * @return array
 +   */
 +  private static function parseSetConditions(array $conditions): array {
-+    if(count($conditions) < 2) {
-+      return $conditions;
-+    }
 +    $parsed = [
 +      'condition' => 'and',
 +      'elements' => [],
 +    ];
 +    foreach($conditions as $field => $condition) {
 +      if(in_array($condition, ['and', 'or', 'xor'])) {
++        //Przypisujemy and,or,xor
 +        $parsed['condition'] = $condition;
 +      } else {
 +        if(!is_string($field)){
@@ -406,7 +390,10 @@ index ee6edc6c1..a30a60b7c 100644
 +          $field = key($condition);
 +          $condition = current($condition);
 +        }
-+        $parsed['elements'][$field] = $condition;
++        $parsed['elements'][] = [
++          'field' => $field,
++          'condition' => $condition
++        ];
 +      }
 +    }
 +    return $parsed;
@@ -425,6 +412,7 @@ index ee6edc6c1..a30a60b7c 100644
 +      return count($parsed['elements']) === count(array_filter($parsed['elements']));
 +    }
 +    //Przynajmniej jeden element musi być poprawny
-+    return count(array_filter($parsed['condition'])) > 0;
++    return count(array_filter($parsed['elements'])) > 0;
 +  }
  }
++
