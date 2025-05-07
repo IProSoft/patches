@@ -260,7 +260,7 @@ index 303fcfce7..2c4b1396f 100644
 +  }
  }
 diff --git a/src/Plugin/WebformElementBase.php b/src/Plugin/WebformElementBase.php
-index ee6edc6c1..9ec79448f 100644
+index ee6edc6c1..a30a60b7c 100644
 --- a/src/Plugin/WebformElementBase.php
 +++ b/src/Plugin/WebformElementBase.php
 @@ -40,6 +40,9 @@ use Drupal\webform\WebformInterface;
@@ -297,7 +297,7 @@ index ee6edc6c1..9ec79448f 100644
      // Set expanded/collapsed states for any details element.
      if ($this instanceof Details) {
        $states[$state_optgroup] += [
-@@ -3779,5 +3790,55 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
+@@ -3779,5 +3790,130 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
    public static function trustedCallbacks() {
      return ['preRenderFixStatesWrapper', 'preRenderFixFlexboxWrapper', 'preRenderWebformCompositeFormElement'];
    }
@@ -311,8 +311,10 @@ index ee6edc6c1..9ec79448f 100644
 +    foreach($element['#states'] as $state => $conditions) {
 +      if(str_contains($state, 'set|')) {
 +        $setValue = FALSE;
-+        foreach($conditions as $field => $condition) {
++        $parsed = self::parseSetConditions($conditions);
++        foreach($parsed['elements'] as $field => $condition) {
 +          foreach($condition as $conditionState => $conditionValue) {
++            $setValue = NULL;
 +            preg_match('@name=\"([^"]+)\"@m', $field, $match);
 +            if(!empty($match[1])) {
 +              $value = $form_state->getValue($match[1]);
@@ -328,16 +330,43 @@ index ee6edc6c1..9ec79448f 100644
 +                case 'value':
 +                  $setValue = ((string)$value === (string)$conditionValue);
 +                  break;
++                case 'pattern':
++                case '!pattern':
++                  // PHP: Convert JavaScript-escaped Unicode characters to PCRE
++                  // escape sequence format.
++                  // @see \Drupal\webform\Plugin\WebformElement\TextBase::validatePattern
++                  $pcre_pattern = preg_replace('/\\\\u([a-fA-F0-9]{4})/', '\\x{\\1}', $conditionValue);
++                  $setValue = preg_match('{' . $pcre_pattern . '}u', $value ?? '');
++                  if($conditionState === '!pattern') {
++                    $setValue = !$setValue;
++                  }
++                  break;
 +              }
 +            }
++            $parsed['elements'][$field] = $setValue;
 +          }
 +        }
-+        if($setValue) {
++        if(self::validSetConditions($parsed)) {
 +          $element['#value'] = substr($state, 4);
 +          $form_state->setValue($element['#webform_key'], $element['#value']);
 +        }
 +      }
 +    }
++  }
++
++  /**
++   * Walidujemy wartości jako tablice
++   *
++   * @throws \JsonException
++   */
++  public static function validateSetToWithMultiple($value, $conditionValue): bool {
++    $values = [$conditionValue];
++    if(str_starts_with($conditionValue, '[')) {
++      try {
++        $values = json_decode($conditionValue, TRUE, 512, JSON_THROW_ON_ERROR);
++      } catch(\Exception $e) {}
++    }
++    return in_array($value, $values, true);
 +  }
  
 +  /**
@@ -351,5 +380,51 @@ index ee6edc6c1..9ec79448f 100644
 +    return count(array_filter(array_keys($states), static function ($state) {
 +        return str_contains($state, 'set|');
 +      })) > 0;
++  }
++
++  /**
++   * Poprawiamy problem dla innego zakresu niż Wszystko
++   *
++   * @param array $conditions
++   *
++   * @return array
++   */
++  private static function parseSetConditions(array $conditions): array {
++    if(count($conditions) < 2) {
++      return $conditions;
++    }
++    $parsed = [
++      'condition' => 'and',
++      'elements' => [],
++    ];
++    foreach($conditions as $field => $condition) {
++      if(in_array($condition, ['and', 'or', 'xor'])) {
++        $parsed['condition'] = $condition;
++      } else {
++        if(!is_string($field)){
++          //Other than AND
++          $field = key($condition);
++          $condition = current($condition);
++        }
++        $parsed['elements'][$field] = $condition;
++      }
++    }
++    return $parsed;
++  }
++
++  /**
++   * Walidujemy zestaw warunków
++   *
++   * @param $parsed
++   *
++   * @return bool
++   */
++  private static function validSetConditions($parsed): bool {
++    if($parsed['condition'] === 'and') {
++      //Wszystkie elementy muszą być poprawne
++      return count($parsed['elements']) === count(array_filter($parsed['elements']));
++    }
++    //Przynajmniej jeden element musi być poprawny
++    return count(array_filter($parsed['condition'])) > 0;
 +  }
  }
