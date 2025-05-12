@@ -1,5 +1,5 @@
 diff --git a/src/Plugin/views/display/PDF.php b/src/Plugin/views/display/PDF.php
-index 830d604..3ddbf32 100644
+index 830d604..e3987b4 100644
 --- a/src/Plugin/views/display/PDF.php
 +++ b/src/Plugin/views/display/PDF.php
 @@ -123,7 +123,7 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
@@ -30,9 +30,9 @@ index 830d604..3ddbf32 100644
 +      if (!preg_match('/\.pdf$/', $path_to_store_pdf)) {
 +        $path_to_store_pdf .= '.pdf';
 +      }
- 
-+      $response->setContent($view->pdf->Output($path_to_store_pdf, 'I'));
 +
++      $response->setContent($view->pdf->Output($path_to_store_pdf, 'I'));
+ 
 +      $cache_metadata = CacheableMetadata::createFromRenderArray($build);
 +      $response->addCacheableDependency($cache_metadata);
 +    }
@@ -40,21 +40,27 @@ index 830d604..3ddbf32 100644
      return $response;
    }
  
-@@ -503,7 +518,12 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+@@ -503,7 +518,19 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
        'desc' => $this->t('Define a CSS file attached to all HTML output.'),
      );
  
--
++    if ($this->getOption('file_name_pattern') === '') {
++      $pdf_file = $this->t('None');
++    }
++    else {
++      $pdf_file = $this->getOption('file_name_pattern');
++    }
+ 
 +    $options['file'] = [
 +      'category' => 'page',
 +      'title' => $this->t('PDF File Settings'),
-+      'value' => $css_file,
++      'value' => $pdf_file,
 +      'desc' => $this->t('Define a PDF file file name pattern.'),
 +    ];
    }
  
    /**
-@@ -1048,6 +1068,15 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+@@ -1048,6 +1075,15 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
            '#default_value' => $this->getOption('css_file'),
          ];
          break;
@@ -70,11 +76,14 @@ index 830d604..3ddbf32 100644
      }
    }
    /**
-@@ -1119,6 +1148,7 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
-         $this->setOption('succeed_template', $form_state->getValue('succeed_template'));
-         $this->setOption('succeed_header', $form_state->getValue('succeed_header'));
-         $this->setOption('succeed_footer', $form_state->getValue('succeed_footer'));
-+        $this->setOption('file_name_pattern', $form_state->getValue('file_name_pattern'));
+@@ -1129,6 +1165,10 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+         $this->setOption('css_file', $form_state->getValue('css_file'));
          break;
  
-       case 'displays':
++      case 'file':
++        $this->setOption('file_name_pattern', $form_state->getValue('file_name_pattern'));
++        break;
++
+     }
+   }
+ 
