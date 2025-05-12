@@ -1,0 +1,80 @@
+diff --git a/src/Plugin/views/display/PDF.php b/src/Plugin/views/display/PDF.php
+index 830d604..3ddbf32 100644
+--- a/src/Plugin/views/display/PDF.php
++++ b/src/Plugin/views/display/PDF.php
+@@ -123,7 +123,7 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+     return 'pdf';
+   }
+ 
+-  public static function buildResponse($view_id, $display_id, array $args = []) : StreamedResponse {
++  public static function buildResponse($view_id, $display_id, array $args = []) : CacheableResponse  {
+     $build = static::buildBasicRenderable($view_id, $display_id, $args);
+ 
+     // Set up an empty response, so for example RSS can set the proper
+@@ -138,10 +138,25 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+     /** @var \Drupal\views\ViewExecutable $view */
+     $view = $build['view_build']['#view'];
+ 
+-    $response->setContent($view->pdf->Output());
+-    $cache_metadata = CacheableMetadata::createFromRenderArray($build);
+-    $response->addCacheableDependency($cache_metadata);
++    if ($view && isset($view->pdf)) {
++      if ($view->initStyle()) {
++        $view->style_plugin->getField(1, 1);
++      }
++
++      $view->setTitle($view->query->displayHandler->getOption('file_name_pattern'));
++      $path_to_store_pdf = \Drupal::service('transliteration')->removeDiacritics($view->getTitle());
++      $view->pdf->SetTitle($path_to_store_pdf);
++
++      if (!preg_match('/\.pdf$/', $path_to_store_pdf)) {
++        $path_to_store_pdf .= '.pdf';
++      }
+ 
++      $response->setContent($view->pdf->Output($path_to_store_pdf, 'I'));
++
++      $cache_metadata = CacheableMetadata::createFromRenderArray($build);
++      $response->addCacheableDependency($cache_metadata);
++    }
++    
+     return $response;
+   }
+ 
+@@ -503,7 +518,12 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+       'desc' => $this->t('Define a CSS file attached to all HTML output.'),
+     );
+ 
+-
++    $options['file'] = [
++      'category' => 'page',
++      'title' => $this->t('PDF File Settings'),
++      'value' => $css_file,
++      'desc' => $this->t('Define a PDF file file name pattern.'),
++    ];
+   }
+ 
+   /**
+@@ -1048,6 +1068,15 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+           '#default_value' => $this->getOption('css_file'),
+         ];
+         break;
++
++      case 'file':
++        $form['#title'] .= $this->t('CSS File');
++        $form['file_name_pattern'] = [
++          '#type' => 'textfield',
++          '#description' => $this->t('File Name Pattern'),
++          '#default_value' => $this->getOption('file_name_pattern'),
++        ];
++        break;
+     }
+   }
+   /**
+@@ -1119,6 +1148,7 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+         $this->setOption('succeed_template', $form_state->getValue('succeed_template'));
+         $this->setOption('succeed_header', $form_state->getValue('succeed_header'));
+         $this->setOption('succeed_footer', $form_state->getValue('succeed_footer'));
++        $this->setOption('file_name_pattern', $form_state->getValue('file_name_pattern'));
+         break;
+ 
+       case 'displays':
