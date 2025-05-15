@@ -1,0 +1,96 @@
+diff --git a/src/Plugin/WebformElement/CivicrmOptions.php b/src/Plugin/WebformElement/CivicrmOptions.php
+index 14cd9de..9e8ee89 100644
+--- a/src/Plugin/WebformElement/CivicrmOptions.php
++++ b/src/Plugin/WebformElement/CivicrmOptions.php
+@@ -5,8 +5,10 @@ namespace Drupal\webform_civicrm\Plugin\WebformElement;
+ use Drupal\Component\Utility\NestedArray;
+ use Drupal\Core\Form\FormStateInterface;
+ use Drupal\Core\Render\Markup;
++use Drupal\webform\Element\WebformMultiple;
+ use Drupal\webform\Plugin\WebformElement\OptionsBase;
+ use Drupal\webform\WebformSubmissionInterface;
++use Drupal\webform\Plugin\WebformElementBase;
+ 
+ /**
+  * Provides a 'civicrm_options' element.
+@@ -34,8 +36,11 @@ class CivicrmOptions extends OptionsBase {
+         'pid' => 0,
+         'value' => '',
+         'empty_option' => '',
++        'multiple' => 0,
++        'multiple_error' => '',
+         'empty_value' => '',
+         'options' => [],
++        'options_display' => 'one_column',
+         'options_randomize' => FALSE,
+         'expose_list' => TRUE,
+         'exposed_empty_option' => '- ' . t('Automatic') . ' -',
+@@ -101,6 +106,21 @@ class CivicrmOptions extends OptionsBase {
+       '#description' => $this->t('The label to show for the initial option denoting no selection in a select element.'),
+       '#default_value' => $element_properties['empty_option'],
+     ];
++    $form['element']['multiple'] = [
++      '#title' => $this->t('Allowed number of values'),
++      '#type' => 'webform_element_multiple',
++    ];
++    $form['element']['multiple_error'] = [
++      '#type' => 'textfield',
++      '#title' => $this->t('Custom allowed number of values error message'),
++      '#description' => $this->t('If set, this message will be used when an element\'s allowed number of values is exceeded, instead of the default "@message" message.', ['@message' => $this->t('%name: this element cannot hold more than @count values.')]),
++      '#states' => [
++        'visible' => [
++          ':input[name="properties[multiple][container][cardinality]"]' => ['value' => 'number'],
++          ':input[name="properties[multiple][container][cardinality_number]"]' => ['!value' => 1],
++        ],
++      ],
++    ];
+ 
+     if ($element_properties['civicrm_live_options']) {
+       $live_options_description = t('You cannot control the presentation of live options. They will be loaded from the CiviCRM database every time the form is displayed.');
+@@ -132,6 +152,20 @@ class CivicrmOptions extends OptionsBase {
+       '#form_key' => $form_state->get('element_properties')['form_key'],
+     ];
+ 
++    $form['options']['options_display_container'] = $this->getFormInlineContainer();
++    $form['options']['options_display_container']['options_display'] = [
++      '#title' => $this->t('Options display'),
++      '#type' => 'select',
++      '#options' => [
++        'one_column' => $this->t('One column'),
++        'two_columns' => $this->t('Two columns'),
++        'three_columns' => $this->t('Three columns'),
++        'side_by_side' => $this->t('Side by side'),
++        'buttons' => $this->t('Buttons - flexbox'),
++        'buttons_horizontal' => $this->t('Buttons - horizontal'),
++        'buttons_vertical' => $this->t('Buttons - vertical'),
++      ],
++    ];
+     return $form;
+   }
+ 
+@@ -206,10 +240,13 @@ class CivicrmOptions extends OptionsBase {
+         $element['#default_value'] = empty($element['#default_value']) ? [] : (array) $element['#default_value'];
+       }
+     }
+-    if ($is_multiple) {
++    if ($is_multiple && !isset($element['#multiple'])) {
+       $element['#multiple'] = TRUE;
+     }
+-
++    // Options display must be set to trigger the options display.
++    if (empty($element['#options_display']) && $this->hasProperty('options_display')) {
++      $element['#options_display'] = $this->getDefaultProperty('options_display');
++    }
+     parent::prepare($element, $webform_submission);
+   }
+ 
+@@ -222,6 +259,9 @@ class CivicrmOptions extends OptionsBase {
+     if (strpos($element['#form_key'], 'state_province_id') !== false) {
+       unset($element['#needs_validation']);
+       $element['#validated'] = TRUE;
++    } else if (isset($element['#multiple']) && $element['#extra']['multiple'] > 0) {
++      //$element['#multiple'] = $element['#cardinality_number'];
++      $element['#element_validate'][] = [WebformElementBase::class, 'validateMultiple'];
+     }
+   }
+ 
