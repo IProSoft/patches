@@ -16,7 +16,7 @@ index 05ae9521c..426dcb388 100644
 +   */
 +  Drupal.behaviors.webformStates = {
 +    attach(context, settings) {
-+      var $states = $(context).find('[data-drupal-states]');console.log($states);
++      var $states = $(context).find('[data-drupal-states]');
 +      for (var i = 0; i < $states.length; i++) {
 +        var config = JSON.parse($states[i].getAttribute('data-drupal-states'));
 +        Object.keys(config || {}).forEach(function (state) {
