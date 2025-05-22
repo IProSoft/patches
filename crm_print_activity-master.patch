@@ -1,0 +1,39 @@
+diff --git a/CRM/Core/Resources.php b/CRM/Core/Resources.php
+index bef7ca53da..e66f9a2250 100644
+--- a/CRM/Core/Resources.php
++++ b/CRM/Core/Resources.php
+@@ -378,7 +378,7 @@ class CRM_Core_Resources implements CRM_Core_Resources_CollectionAdderInterface
+       // it appears that all callers use 'html-header' (either implicitly or explicitly).
+       throw new \CRM_Core_Exception("Error: addCoreResources only supports html-header");
+     }
+-    if (!self::isAjaxMode()) {
++    if (!self::isAjaxMode() && ($_GET['snippet'] ?? NULL) !== '1') {
+       $this->addBundle('coreResources');
+       $this->addCoreStyles($region);
+       if (!CRM_Core_Config::isUpgradeMode()) {
+diff --git a/js/crm.ajax.js b/js/crm.ajax.js
+index ecd7c73c5e..27dc233810 100644
+--- a/js/crm.ajax.js
++++ b/js/crm.ajax.js
+@@ -394,7 +394,7 @@
+             $(this).dialog('option', 'title', data.title);
+           }
+           // Update print url
+-          $(this).parent().find('a.crm-dialog-titlebar-print').attr('href', $(this).data('civiCrmSnippet')._formatUrl($(this).crmSnippet('option', 'url'), '2'));
++          $(this).parent().find('a.crm-dialog-titlebar-print').attr('href', $(this).data('civiCrmSnippet')._formatUrl($(this).crmSnippet('option', 'url'), '1') + '&print=1');
+         });
+     }
+     $(settings.target).crmSnippet(settings).crmSnippet('refresh');
+diff --git a/templates/CRM/common/snippet.tpl b/templates/CRM/common/snippet.tpl
+index 177d7dc83d..f4ff52b191 100644
+--- a/templates/CRM/common/snippet.tpl
++++ b/templates/CRM/common/snippet.tpl
+@@ -18,7 +18,7 @@
+       {include file=$tplFile}
+     {/if}
+   {else}
+-    {if $smarty.get.snippet eq 2}
++    {if $smarty.get.snippet eq 1 and $smarty.get.print eq 1}
+       {include file="CRM/common/print.tpl"}
+     {else}
+       {crmRegion name='ajax-snippet'}{/crmRegion}
