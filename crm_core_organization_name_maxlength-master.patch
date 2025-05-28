@@ -1,0 +1,13 @@
+diff --git a/schema/Contact/Contact.entityType.php b/schema/Contact/Contact.entityType.php
+index 5c1159967e..6115a9c5bf 100644
+--- a/schema/Contact/Contact.entityType.php
++++ b/schema/Contact/Contact.entityType.php
+@@ -204,7 +204,7 @@ return [
+     ],
+     'organization_name' => [
+       'title' => ts('Organization Name'),
+-      'sql_type' => 'varchar(128)',
++      'sql_type' => 'varchar(255)',
+       'input_type' => 'Text',
+       'description' => ts('Organization Name.'),
+       'add' => '1.1',
