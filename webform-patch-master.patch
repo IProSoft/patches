@@ -1,8 +1,8 @@
 diff --git a/js/webform.states.js b/js/webform.states.js
-index 05ae9521c..426dcb388 100644
+index 0d6a3b2b5..3ca62b400 100644
 --- a/js/webform.states.js
 +++ b/js/webform.states.js
-@@ -312,6 +312,68 @@
+@@ -314,6 +314,68 @@
    // Behaviors.
    /* ************************************************************************ */
  
@@ -71,7 +71,7 @@ index 05ae9521c..426dcb388 100644
    /**
     * Adds HTML5 validation to required checkboxes.
     *
-@@ -597,6 +659,23 @@
+@@ -599,6 +661,23 @@
    // Helper functions.
    /* ************************************************************************ */
  
@@ -96,10 +96,10 @@ index 05ae9521c..426dcb388 100644
     * Toggle an input's required attributes.
     *
 diff --git a/modules/webform_ui/src/WebformUiEntityElementsForm.php b/modules/webform_ui/src/WebformUiEntityElementsForm.php
-index 5e07f18cd..02392cc1e 100644
+index 3fff0d9eb..a402ff6e5 100644
 --- a/modules/webform_ui/src/WebformUiEntityElementsForm.php
 +++ b/modules/webform_ui/src/WebformUiEntityElementsForm.php
-@@ -580,6 +580,9 @@ class WebformUiEntityElementsForm extends BundleEntityFormBase {
+@@ -581,6 +581,9 @@ class WebformUiEntityElementsForm extends BundleEntityFormBase {
        $states = [];
        if (!empty($element['#states'])) {
          $states = array_intersect_key($element_state_options, $element['#states']);
@@ -260,20 +260,21 @@ index 303fcfce7..2c4b1396f 100644
 +  }
  }
 diff --git a/src/Plugin/WebformElementBase.php b/src/Plugin/WebformElementBase.php
-index ee6edc6c1..c4e9555e2 100644
+index 690babf89..87d0409c2 100644
 --- a/src/Plugin/WebformElementBase.php
 +++ b/src/Plugin/WebformElementBase.php
-@@ -40,6 +40,9 @@ use Drupal\webform\WebformInterface;
+@@ -40,6 +40,10 @@ use Drupal\webform\WebformInterface;
  use Drupal\webform\WebformSubmissionConditionsValidator;
  use Drupal\webform\WebformSubmissionInterface;
  use Symfony\Component\DependencyInjection\ContainerInterface;
 +use Drupal\webform\Plugin\WebformElement\BooleanBase;
 +use Drupal\webform\Plugin\WebformElement\OptionsBase;
 +use Drupal\webform\Plugin\WebformElement\TextBase;
++use Drupal\webform\Plugin\WebformElement\NumericBase;
  
  /**
   * Provides a base class for a webform element.
-@@ -1020,6 +1023,9 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
+@@ -1020,6 +1024,9 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
      if (isset($element['#unique']) && $webform_submission) {
        $element['#element_validate'][] = [get_class($this), 'validateUnique'];
      }
@@ -283,13 +284,13 @@ index ee6edc6c1..c4e9555e2 100644
    }
  
    /**
-@@ -2194,7 +2200,12 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
+@@ -2194,7 +2201,12 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
          'unchecked' => $this->t('Unchecked', [], ['context' => 'Remove check mark']),
        ];
      }
 -
 +    // Set "set to" state for allowed elements.
-+    if ($this instanceof TextBase || $this instanceof OptionsBase || $this instanceof BooleanBase) {
++    if ($this instanceof TextBase || $this instanceof OptionsBase || $this instanceof BooleanBase || $this instanceof NumericBase) {
 +      $states[$value_optgroup] = [
 +        'set' => $this->t('Set to'),
 +      ];
@@ -297,7 +298,7 @@ index ee6edc6c1..c4e9555e2 100644
      // Set expanded/collapsed states for any details element.
      if ($this instanceof Details) {
        $states[$state_optgroup] += [
-@@ -3780,4 +3791,118 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
+@@ -3779,4 +3791,117 @@ class WebformElementBase extends PluginBase implements WebformElementInterface,
      return ['preRenderFixStatesWrapper', 'preRenderFixFlexboxWrapper', 'preRenderWebformCompositeFormElement'];
    }
  
@@ -415,4 +416,3 @@ index ee6edc6c1..c4e9555e2 100644
 +    return count(array_filter($parsed['elements'])) > 0;
 +  }
  }
-+
