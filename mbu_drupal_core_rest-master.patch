@@ -1,0 +1,12 @@
+diff --git a/.htaccess b/.htaccess
+index 1ac01a117b2..2beac276983 100644
+--- a/.htaccess
++++ b/.htaccess
+@@ -132,6 +132,7 @@ AddType image/webp .webp
+   RewriteCond %{REQUEST_URI} !=/favicon.ico
+   RewriteRule ^ index.php [L]
+ 
++  RewriteCond %{REQUEST_URI} !/sites/all/modules/civicrm/extern/.*\.php$
+   # For security reasons, deny access to other PHP files on public sites.
+   # Note: The following URI conditions are not anchored at the start (^),
+   # because Drupal may be located in a subdirectory. To further improve
