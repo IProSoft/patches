@@ -1,0 +1,22 @@
+diff --git a/src/Plugin/views/row/PDFFields.php b/src/Plugin/views/row/PDFFields.php
+index 3ea80af..9b50c2b 100644
+--- a/src/Plugin/views/row/PDFFields.php
++++ b/src/Plugin/views/row/PDFFields.php
+@@ -46,7 +46,7 @@ class PDFFields extends RowPluginBase {
+     $this->pdf = $this->view->pdf;
+ 
+     foreach ($this->view->field as $id => $field) {
+-      if (empty($field->options['exclude'])) {
++
+         $options = $this->options['formats'][$id] ?? [];
+ 
+         switch ($this->view->getStyle()->pluginId) {
+@@ -66,7 +66,7 @@ class PDFFields extends RowPluginBase {
+             $this->options['grid']['new_cell'] = FALSE;
+             break;
+         }
+-      }
++
+     }
+ 
+     // Reset the row page number.
