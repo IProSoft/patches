@@ -1,11 +1,12 @@
 diff --git a/modules/file/file.module b/modules/file/file.module
-index 6fcfa8c789..2ca59f4e76 100644
+index 6fcfa8c789..3b2b5b7388 100644
 --- a/modules/file/file.module
 +++ b/modules/file/file.module
-@@ -294,30 +294,30 @@ function file_validate_image_resolution(FileInterface $file, $maximum_dimensions
+@@ -293,31 +293,31 @@ function file_validate_image_resolution(FileInterface $file, $maximum_dimensions
+           $image->save();
            // Update the file size now that the image has been resized.
            $file->setSize($image->getFileSize());
-           if (!empty($width) && !empty($height)) {
+-          if (!empty($width) && !empty($height)) {
 -            $message = t('The image was resized to fit within the maximum allowed dimensions of %dimensions pixels. The new dimensions of the resized image are %new_widthx%new_height pixels.',
 -              [
 -                '%dimensions' => $maximum_dimensions,
@@ -30,6 +31,7 @@ index 6fcfa8c789..2ca59f4e76 100644
 -              ]);
 -          }
 -          \Drupal::messenger()->addStatus($message);
++//        if (!empty($width) && !empty($height)) {
 +//            $message = t('The image was resized to fit within the maximum allowed dimensions of %dimensions pixels. The new dimensions of the resized image are %new_widthx%new_height pixels.',
 +//              [
 +//                '%dimensions' => $maximum_dimensions,
