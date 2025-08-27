@@ -1,0 +1,82 @@
+diff --git a/modules/file/file.module b/modules/file/file.module
+index 6fcfa8c789..001ee7f63b 100644
+--- a/modules/file/file.module
++++ b/modules/file/file.module
+@@ -293,31 +293,32 @@ function file_validate_image_resolution(FileInterface $file, $maximum_dimensions
+           $image->save();
+           // Update the file size now that the image has been resized.
+           $file->setSize($image->getFileSize());
++
+           if (!empty($width) && !empty($height)) {
+-            $message = t('The image was resized to fit within the maximum allowed dimensions of %dimensions pixels. The new dimensions of the resized image are %new_widthx%new_height pixels.',
+-              [
+-                '%dimensions' => $maximum_dimensions,
+-                '%new_width' => $image->getWidth(),
+-                '%new_height' => $image->getHeight(),
+-              ]);
+-          }
+-          elseif (empty($width)) {
+-            $message = t('The image was resized to fit within the maximum allowed height of %height pixels. The new dimensions of the resized image are %new_widthx%new_height pixels.',
+-              [
+-                '%height' => $height,
+-                '%new_width' => $image->getWidth(),
+-                '%new_height' => $image->getHeight(),
+-              ]);
+-          }
+-          elseif (empty($height)) {
+-            $message = t('The image was resized to fit within the maximum allowed width of %width pixels. The new dimensions of the resized image are %new_widthx%new_height pixels.',
+-              [
+-                '%width' => $width,
+-                '%new_width' => $image->getWidth(),
+-                '%new_height' => $image->getHeight(),
+-              ]);
+-          }
+-          \Drupal::messenger()->addStatus($message);
++//            $message = t('The image was resized to fit within the maximum allowed dimensions of %dimensions pixels. The new dimensions of the resized image are %new_widthx%new_height pixels.',
++//              [
++//                '%dimensions' => $maximum_dimensions,
++//                '%new_width' => $image->getWidth(),
++//                '%new_height' => $image->getHeight(),
++//              ]);
++//          }
++//          elseif (empty($width)) {
++//            $message = t('The image was resized to fit within the maximum allowed height of %height pixels. The new dimensions of the resized image are %new_widthx%new_height pixels.',
++//              [
++//                '%height' => $height,
++//                '%new_width' => $image->getWidth(),
++//                '%new_height' => $image->getHeight(),
++//              ]);
++//          }
++//          elseif (empty($height)) {
++//            $message = t('The image was resized to fit within the maximum allowed width of %width pixels. The new dimensions of the resized image are %new_widthx%new_height pixels.',
++//              [
++//                '%width' => $width,
++//                '%new_width' => $image->getWidth(),
++//                '%new_height' => $image->getHeight(),
++//              ]);
++//          }
++//          \Drupal::messenger()->addStatus($message);
+         }
+         else {
+           $errors[] = t('The image exceeds the maximum allowed dimensions and an attempt to resize it failed.');
+@@ -682,13 +683,13 @@ function file_save_upload($form_field_name, $validators = [], $destination = FAL
+       $file = $result->getFile();
+       // If the filename has been modified, let the user know.
+       if ($result->isRenamed()) {
+-        if ($result->isSecurityRename()) {
+-          $message = t('For security reasons, your upload has been renamed to %filename.', ['%filename' => $file->getFilename()]);
+-        }
+-        else {
+-          $message = t('Your upload has been renamed to %filename.', ['%filename' => $file->getFilename()]);
+-        }
+-        \Drupal::messenger()->addStatus($message);
++//        if ($result->isSecurityRename()) {
++//          $message = t('For security reasons, your upload has been renamed to %filename.', ['%filename' => $file->getFilename()]);
++//        }
++//        else {
++//          $message = t('Your upload has been renamed to %filename.', ['%filename' => $file->getFilename()]);
++//        }
++//        \Drupal::messenger()->addStatus($message);
+       }
+       $files[$i] = $file;
+     }
