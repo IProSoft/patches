@@ -1,0 +1,15 @@
+diff --git a/src/WebformCivicrmBase.php b/src/WebformCivicrmBase.php
+index e291cc8..4a05857 100644
+--- a/src/WebformCivicrmBase.php
++++ b/src/WebformCivicrmBase.php
+@@ -798,6 +798,10 @@ abstract class WebformCivicrmBase {
+   public static function saveDrupalFileToCivi($id, $filename = NULL) {
+     $file = File::load($id);
+     if ($file) {
++      if($filename) {
++        $destination_extension = pathinfo(basename($file->getFileUri()), PATHINFO_EXTENSION);
++        $filename .= '.' . $destination_extension;
++      }
+       $config = \CRM_Core_Config::singleton();
+       $copyTo = $config->customFileUploadDir;
+       if(isset($filename)) {
