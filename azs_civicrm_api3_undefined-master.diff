@@ -1,0 +1,14 @@
+diff --git a/src/Utils.php b/src/Utils.php
+index fec2260..e837b88 100644
+--- a/src/Utils.php
++++ b/src/Utils.php
+@@ -675,6 +675,9 @@ class Utils implements UtilsInterface {
+       $result = $utils->wf_civicrm_api3_contribution_transact($params);
+     }
+     else {
++      if(!is_callable('civicrm_api3')) {
++        \Drupal::service('civicrm')->initialize();
++      }
+       $result = civicrm_api3($entity, $operation, $params);
+     }
+     // I guess we want silent errors for getoptions b/c we check it for failure separately
