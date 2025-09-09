@@ -1,19 +1,7 @@
-diff --git a/web/.htaccess b/web/.htaccess
+diff --git a/core/assets/scaffold/files/htaccess b/core/assets/scaffold/files/htaccess
 index 4031da475cf..71d63d9652a 100644
---- a/web/.htaccess
-+++ b/web/.htaccess
-@@ -129,6 +129,7 @@ AddEncoding gzip svgz
-   RewriteCond %{REQUEST_URI} !=/favicon.ico
-   RewriteRule ^ index.php [L]
- 
-+  RewriteCond %{REQUEST_URI} !/sites/all/modules/civicrm/extern/.*\.php$
-   # For security reasons, deny access to other PHP files on public sites.
-   # Note: The following URI conditions are not anchored at the start (^),
-   # because Drupal may be located in a subdirectory. To further improve
-diff --git a/web/core/assets/scaffold/files/htaccess b/web/core/assets/scaffold/files/htaccess
-index 4031da475cf..71d63d9652a 100644
---- a/web/core/assets/scaffold/files/htaccess
-+++ b/web/core/assets/scaffold/files/htaccess
+--- a/core/assets/scaffold/files/htaccess
++++ b/core/assets/scaffold/files/htaccess
 @@ -129,6 +129,7 @@ AddEncoding gzip svgz
    RewriteCond %{REQUEST_URI} !=/favicon.ico
    RewriteRule ^ index.php [L]
