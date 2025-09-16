@@ -1,13 +1,13 @@
-diff --git a/core/lib/Drupal/Core/Form/FormErrorHandler.php b/core/lib/Drupal/Core/Form/FormErrorHandler.php
-index a414439f8fd..0769b35b771 100644
---- a/core/lib/Drupal/Core/Form/FormErrorHandler.php
-+++ b/core/lib/Drupal/Core/Form/FormErrorHandler.php
-@@ -148,7 +148,7 @@ protected function setElementErrorsFromFormState(array &$form, FormStateInterfac
+diff --git a/lib/Drupal/Core/Form/FormErrorHandler.php b/lib/Drupal/Core/Form/FormErrorHandler.php
+index a414439f8f..39c14d5568 100644
+--- a/lib/Drupal/Core/Form/FormErrorHandler.php
++++ b/lib/Drupal/Core/Form/FormErrorHandler.php
+@@ -148,7 +148,7 @@ class FormErrorHandler implements FormErrorHandlerInterface {
  
          // If this direct child belongs to a group populate the grouping element
          // with the children errors.
 -        if (!empty($child['#group'])) {
-+        if (is_string($child['#group']) && !empty($child['#group'])) {
++        if (!empty($child['#group']) && is_string($child['#group']) ) {
            $parents = explode('][', $child['#group']);
            $group_element = NestedArray::getValue($form, $parents);
            if (isset($group_element['#children_errors'])) {
