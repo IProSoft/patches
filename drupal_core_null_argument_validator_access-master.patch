@@ -1,0 +1,13 @@
+diff --git a/core/modules/views/src/Plugin/views/argument/NullArgument.php b/core/modules/views/src/Plugin/views/argument/NullArgument.php
+index 4bfd558282f..5c1a05432fc 100644
+--- a/core/modules/views/src/Plugin/views/argument/NullArgument.php
++++ b/core/modules/views/src/Plugin/views/argument/NullArgument.php
+@@ -42,7 +42,7 @@ public function buildOptionsForm(&$form, FormStateInterface $form_state) {
+    */
+   protected function defaultActions($which = NULL) {
+     if ($which) {
+-      if (in_array($which, ['ignore', 'not found', 'empty', 'default'])) {
++      if (in_array($which, ['access denied', 'ignore', 'not found', 'empty', 'default'])) {
+         return parent::defaultActions($which);
+       }
+       return;
