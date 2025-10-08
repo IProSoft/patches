@@ -1,5 +1,5 @@
 diff --git a/src/Plugin/WebformElement/CivicrmOptions.php b/src/Plugin/WebformElement/CivicrmOptions.php
-index 14cd9de..9e8ee89 100644
+index 14cd9de..330d588 100644
 --- a/src/Plugin/WebformElement/CivicrmOptions.php
 +++ b/src/Plugin/WebformElement/CivicrmOptions.php
 @@ -5,8 +5,10 @@ namespace Drupal\webform_civicrm\Plugin\WebformElement;
@@ -88,7 +88,7 @@ index 14cd9de..9e8ee89 100644
      if (strpos($element['#form_key'], 'state_province_id') !== false) {
        unset($element['#needs_validation']);
        $element['#validated'] = TRUE;
-+    } else if (isset($element['#multiple']) && $element['#extra']['multiple'] > 0) {
++    } else if (isset($element['#multiple']) && $element['#multiple'] && ($element['#extra']['multiple'] ?? 0) > 0) {
 +      //$element['#multiple'] = $element['#cardinality_number'];
 +      $element['#element_validate'][] = [WebformElementBase::class, 'validateMultiple'];
      }
