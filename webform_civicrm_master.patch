@@ -94,3 +94,24 @@ index 14cd9de..330d588 100644
      }
    }
  
+diff --git a/src/WebformCivicrmPreProcess.php b/src/WebformCivicrmPreProcess.php
+index 7a4d21e..9873a45 100644
+--- a/src/WebformCivicrmPreProcess.php
++++ b/src/WebformCivicrmPreProcess.php
+@@ -110,13 +110,14 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
+     $triggering_element = $this->form_state->getTriggeringElement();
+ 
+     // When user uploads a file using a managed_file element, avoid making any change to $this->form.
+-    if ($this->form_state->hasFileElement()
++    if (isset($triggering_element['#submit'])
+       && is_array($triggering_element['#submit'])
++      && $this->form_state->hasFileElement()
+       && in_array('file_managed_file_submit', $triggering_element['#submit'], TRUE)) {
+       return;
+     }
+ 
+-    if ($triggering_element && $triggering_element['#id'] == 'edit-wizard-prev'
++    if (($triggering_element && $triggering_element['#id'] === 'edit-wizard-prev')
+       || (empty($this->form_state->isRebuilding()) && !empty($this->form_state->getValues()) && empty($this->form['#submission']->is_draft))
+       // When resuming from a draft
+       || (!empty($this->form_state->getFormObject()->getEntity()->isDraft()) && empty($this->form_state->getUserInput()))
