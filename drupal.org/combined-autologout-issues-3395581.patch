@@ -259,5 +259,3 @@ index ca3fe7e..dc5d025 100644
 -        Drupal.Ajax['autologout.refresh'].autologoutRefresh(init);
 +        getDrupalAjaxRefreshObject().autologoutRefresh(init);
        }
- 
-       // Check if the page was loaded via a back button click.
