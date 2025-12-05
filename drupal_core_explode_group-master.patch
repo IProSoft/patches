@@ -1,8 +1,8 @@
-diff --git a/lib/Drupal/Core/Form/FormErrorHandler.php b/lib/Drupal/Core/Form/FormErrorHandler.php
-index a414439f8f..39c14d5568 100644
---- a/lib/Drupal/Core/Form/FormErrorHandler.php
-+++ b/lib/Drupal/Core/Form/FormErrorHandler.php
-@@ -148,7 +148,7 @@ class FormErrorHandler implements FormErrorHandlerInterface {
+diff --git a/core/lib/Drupal/Core/Form/FormErrorHandler.php b/core/lib/Drupal/Core/Form/FormErrorHandler.php
+index a414439f8fd..39c14d55681 100644
+--- a/core/lib/Drupal/Core/Form/FormErrorHandler.php
++++ b/core/lib/Drupal/Core/Form/FormErrorHandler.php
+@@ -148,7 +148,7 @@ protected function setElementErrorsFromFormState(array &$form, FormStateInterfac
  
          // If this direct child belongs to a group populate the grouping element
          // with the children errors.
