@@ -1,3 +1,16 @@
+diff --git a/src/ContactComponent.php b/src/ContactComponent.php
+index ff03d95..0efbb20 100644
+--- a/src/ContactComponent.php
++++ b/src/ContactComponent.php
+@@ -321,7 +321,7 @@ class ContactComponent implements ContactComponentInterface {
+       }
+       foreach ($this->utils->wf_crm_apivalues('relationship', 'get', $params) as $relationship) {
+         $a = $relationship['contact_id_a'] == $cid ? 'b' : 'a';
+-        if (!$current || empty($relationship['end_date']) || strtotime($relationship['end_date']) > time()) {
++        if (!$current || empty($relationship['end_date']) || ((new \DateTime('NOW')) <= (new \DateTime($relationship['end_date']))->setTime(23, 59, 59))) {
+           if (!$allowed || in_array($relationship['relationship_type_id'] . '_' . $a, $allowed)) {
+             $c = $relationship["contact_id_$a"];
+             $found[$c] = $c;
 diff --git a/src/Plugin/WebformElement/CivicrmOptions.php b/src/Plugin/WebformElement/CivicrmOptions.php
 index 14cd9de..330d588 100644
 --- a/src/Plugin/WebformElement/CivicrmOptions.php
