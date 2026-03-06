@@ -11,10 +11,10 @@ index b1402db..bc3cb3e 100644
              $item_values[$delta][$main_property_name] = $datetime_value;
            }
 diff --git a/src/Plugin/views/field/CustomEntityField.php b/src/Plugin/views/field/CustomEntityField.php
-index d8763a7..59de32d 100644
+index d8763a7..64a40a8 100644
 --- a/src/Plugin/views/field/CustomEntityField.php
 +++ b/src/Plugin/views/field/CustomEntityField.php
-@@ -219,22 +219,23 @@ class CustomEntityField extends EntityField {
+@@ -219,7 +219,7 @@ class CustomEntityField extends EntityField {
     *   Returns the processed entity.
     */
    protected function createEntity(EntityInterface $entity) {
@@ -22,31 +22,4 @@ index d8763a7..59de32d 100644
 +    $processed_entity = $entity;
  
      try {
--      $result = $this->civicrmApi->get('CustomValue', [
--        'sequential' => 1,
--        'return' => [$this->definition['field_name']],
--        'entity_id' => $entity->id(),
--        'entity_table' => $entity->getEntityTypeId(),
--      ]);
--
-+      $result = $processed_entity->{$this->definition['field_name']}->getValue();
-       if (!empty($result)) {
-         $result = reset($result);
--        $result = array_filter($result, function ($key) {
--          return is_int($key);
--        }, ARRAY_FILTER_USE_KEY);
--
-+        if (isset($result['original_value'])) {
-+          $result = [$result['original_value']];
-+        }
-+        elseif (isset($result['value'])) {
-+          $result = [$result['value']];
-+        }
-+        else {
-+          $result = array_filter($result, function ($key) {
-+            return is_int($key);
-+          }, ARRAY_FILTER_USE_KEY);
-+        }
-         if (!empty($result)) {
-           if (isset($result[0]) && is_array($result[0])) {
-             $result = reset($result);
+       $result = $this->civicrmApi->get('CustomValue', [
