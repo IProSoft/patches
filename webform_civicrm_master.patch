@@ -29,9 +29,9 @@ index 14cd9de..4f2c465 100644
 @@ -35,7 +37,10 @@ class CivicrmOptions extends OptionsBase {
          'value' => '',
          'empty_option' => '',
+         'empty_value' => '',
 +        'multiple' => 0,
 +        'multiple_error' => '',
-         'empty_value' => '',
          'options' => [],
 +        'options_display' => 'one_column',
          'options_randomize' => FALSE,
@@ -130,3 +130,15 @@ index 12d6f82..11d4949 100644
        || (empty($this->form_state->isRebuilding()) && !empty($this->form_state->getValues()) && empty($this->form['#submission']->is_draft))
        // When resuming from a draft
        || (!empty($this->form_state->getFormObject()->getEntity()->isDraft()) && empty($this->form_state->getUserInput()))
+diff --git a/webform_civicrm.install b/webform_civicrm.install
+index 4c4812d..86794c9 100644
+--- a/webform_civicrm.install
++++ b/webform_civicrm.install
+@@ -470,6 +470,7 @@ function webform_civicrm_update_8008() {
+   $webforms = Webform::loadMultiple();
+ 
+   foreach ($webforms as $webform) {
++    $webform = Webform::load($webform->id());
+     $handler = $webform->getHandlers('webform_civicrm');
+     $config = $handler->getConfiguration();
+     $elements = $webform->getElementsDecodedAndFlattened();
