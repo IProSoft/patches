@@ -1,10 +1,11 @@
 --- kcfinder/js/050.init.org.js	2026-05-14 13:36:26.404945306 +0200
 +++ kcfinder/js/050.init.js	2026-05-14 13:36:04.720669711 +0200
-@@ -46,6 +46,14 @@
+@@ -46,6 +46,15 @@
  
      if ($.mobile)
          $('body').addClass("mobile");
 +
++    $('a[href="kcdir:/images/beneficjenci"] .brace').trigger('click');
 +    let intervalId = setInterval(function() {
 +        let folder = $('a[href="kcdir:/images/beneficjenci/ulotki-i-wizytowki"] .folder');
 +        if(folder.length > 0){
