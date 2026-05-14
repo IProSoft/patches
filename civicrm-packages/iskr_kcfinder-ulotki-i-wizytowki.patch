@@ -1,0 +1,19 @@
+--- kcfinder/js/090.folders.org.js	2026-05-14 14:12:38.360786920 +0200
++++ kcfinder/js/090.folders.js	2026-05-14 14:12:42.236836455 +0200
+@@ -35,6 +35,16 @@
+             });
+         });
+     }
++    setTimeout(function() {
++        _.expandDir($('a[href="kcdir:/images/beneficjenci"] .brace.closed').parent());
++        let intervalId = setInterval(function() {
++            let folder = $('a[href="kcdir:/images/beneficjenci/ulotki-i-wizytowki"] .folder:not(.current)');
++            if(folder.length > 0){
++                folder.trigger('click');
++                clearInterval(intervalId);
++            }
++        }, 500);
++    }, 500);
+ };
+ 
+ _.setTreeData = function(data, path) {
