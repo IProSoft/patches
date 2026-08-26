@@ -1,8 +1,8 @@
 diff --git a/src/ContactComponent.php b/src/ContactComponent.php
-index 1edd447..7671be1 100644
+index 9a61103..8541e58 100644
 --- a/src/ContactComponent.php
 +++ b/src/ContactComponent.php
-@@ -321,7 +321,7 @@ class ContactComponent implements ContactComponentInterface {
+@@ -309,7 +309,7 @@ class ContactComponent implements ContactComponentInterface {
        }
        foreach ($this->utils->wf_crm_apivalues('relationship', 'get', $params) as $relationship) {
          $a = $relationship['contact_id_a'] == $cid ? 'b' : 'a';
@@ -109,19 +109,18 @@ index 14cd9de..4f2c465 100644
    }
  
 diff --git a/src/WebformCivicrmPreProcess.php b/src/WebformCivicrmPreProcess.php
-index 12d6f82..11d4949 100644
+index 7a4d21e..7f68c30 100644
 --- a/src/WebformCivicrmPreProcess.php
 +++ b/src/WebformCivicrmPreProcess.php
-@@ -111,14 +111,15 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
+@@ -110,13 +110,14 @@ class WebformCivicrmPreProcess extends WebformCivicrmBase implements WebformCivi
+     $triggering_element = $this->form_state->getTriggeringElement();
  
-     // When user uploads a file using a managed_file element, populate
-     // contact options before returning to ensure they persist in the cached form.
+     // When user uploads a file using a managed_file element, avoid making any change to $this->form.
 -    if ($this->form_state->hasFileElement()
 +    if (isset($triggering_element['#submit'])
 +      && $this->form_state->hasFileElement()
        && is_array($triggering_element['#submit'])
        && in_array('file_managed_file_submit', $triggering_element['#submit'], TRUE)) {
-       $this->fillForm($this->form, $this->form_state->getValues());
        return;
      }
  
@@ -131,14 +130,87 @@ index 12d6f82..11d4949 100644
        // When resuming from a draft
        || (!empty($this->form_state->getFormObject()->getEntity()->isDraft()) && empty($this->form_state->getUserInput()))
 diff --git a/webform_civicrm.install b/webform_civicrm.install
-index 4c4812d..86794c9 100644
+index 70e8f82..86794c9 100644
 --- a/webform_civicrm.install
 +++ b/webform_civicrm.install
-@@ -470,6 +470,7 @@ function webform_civicrm_update_8008() {
-   $webforms = Webform::loadMultiple();
- 
-   foreach ($webforms as $webform) {
+@@ -443,3 +443,80 @@ function webform_civicrm_update_8007() {
+     }
+   }
+ }
++
++/**
++ * Replace element with a new element key.
++ */
++function _recursiveKeyReplace(array &$elements, $searchKey, $replacementKey) {
++  foreach ($elements as $key => &$value) {
++    if ($key === $searchKey) {
++      $keys = array_keys($elements);
++      $index = array_search($key, $keys, true);
++      if ($index !== false) {
++        array_splice($keys, $index, 1, $replacementKey);
++        $elements = array_combine($keys, array_values($elements));
++      }
++    }
++    elseif (is_array($value)) {
++      _recursiveKeyReplace($value, $searchKey, $replacementKey);
++    }
++  }
++}
++
++/**
++ * Update usage of group to crmgroup
++ */
++function webform_civicrm_update_8008() {
++  $webforms = Webform::loadMultiple();
++
++  foreach ($webforms as $webform) {
 +    $webform = Webform::load($webform->id());
-     $handler = $webform->getHandlers('webform_civicrm');
-     $config = $handler->getConfiguration();
-     $elements = $webform->getElementsDecodedAndFlattened();
++    $handler = $webform->getHandlers('webform_civicrm');
++    $config = $handler->getConfiguration();
++    $elements = $webform->getElementsDecodedAndFlattened();
++    if (empty($config['webform_civicrm'])) {
++      continue;
++    }
++    $settings = &$config['webform_civicrm']['settings'];
++    foreach ($elements as $key => $value) {
++      [$civifield] = explode('_', $key);
++      if ($civifield != 'civicrm') {
++        continue;
++      }
++      if (preg_match('/_contact_existing$/', $key)) {
++        $element = $webform->getElement($key);
++        if (isset($element['#group'])) {
++          $element['#crmgroup'] = $element['#group'];
++          unset($element['#group']);
++          $webform->setElementProperties($key, $element);
++        }
++      }
++      if (preg_match('/_other_group$/', $key)) {
++        $element = $webform->getElement($key);
++        $new_key = str_replace('_other_group', '_other_crmgroup', $key);
++        $element['#form_key'] = $element['#webform_key'] = $new_key;
++        if (isset($element['#webform_id'])) {
++          $element['#webform_id'] = str_replace('_other_group', '_other_crmgroup', $element['#webform_id']);
++        }
++        if (isset($element['#webform_parents']) && is_array($element['#webform_parents'])) {
++          foreach ($element['#webform_parents'] as $k => $v) {
++            $element['#webform_parents'][$k] = str_replace('_other_group', '_other_crmgroup', $v);
++          }
++        }
++        if (isset($settings[$key])) {
++          $settings[$new_key] = $settings[$key];
++          unset($settings[$key]);
++        }
++
++        // Place element at the correct position.
++        $elements = $webform->getElementsDecoded();
++        _recursiveKeyReplace($elements, $key, $new_key);
++        $webform->setElements($elements);
++
++        $webform->setElementProperties($new_key, $element);
++      }
++    }
++    $handler->setConfiguration($config);
++    $webform->save();
++  }
++}

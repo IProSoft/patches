@@ -1,0 +1,25 @@
+From f8897f7305e624e607b6cf84b798a9cea6228259 Mon Sep 17 00:00:00 2001
+From: Jaime Contreras <19384-jcontreras78@users.noreply.drupalcode.org>
+Date: Fri, 5 Jun 2026 10:40:32 -0500
+Subject: [PATCH] path upgrade to D11
+
+---
+ views_pdf.info.yml | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/views_pdf.info.yml b/views_pdf.info.yml
+index cdddc5b..18b4669 100644
+--- a/views_pdf.info.yml
++++ b/views_pdf.info.yml
+@@ -2,7 +2,7 @@ name: Views PDF
+ description: 'Views plugin to export a view as a PDF file.'
+ type: module
+ package: Views
+-core_version_requirement: ^9.4 || ^10
++core_version_requirement: ^9.4 || ^10 || ^11
+ php: 8.0
+ 
+ dependencies:
+-- 
+GitLab
+
