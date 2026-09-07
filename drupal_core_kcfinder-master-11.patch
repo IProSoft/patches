@@ -1,11 +1,9 @@
 diff --git a/core/assets/scaffold/files/htaccess b/core/assets/scaffold/files/htaccess
-index 4031da475cf..b27eebf0eec 100644
 --- a/core/assets/scaffold/files/htaccess
 +++ b/core/assets/scaffold/files/htaccess
-@@ -141,6 +141,8 @@ AddEncoding gzip svgz
-   # Copy and adapt this rule to directly execute PHP files in contributed or
-   # custom modules or to run another PHP application in the same directory.
-   RewriteCond %{REQUEST_URI} !/core/modules/statistics/statistics\.php$
+@@ -142,6 +142,8 @@
+   RewriteCond %{REQUEST_URI} !/core/modules/system/tests/https?\.php
+   RewriteCond %{REQUEST_URI} !/core/modules/system/tests/modules/legacy_front_controller_test/test_index.php
 +  #kcfinder FIX
 +  RewriteCond %{REQUEST_URI} !/libraries/civicrm/packages/kcfinder/.*\.php$
    # Deny access to any other PHP files that do not match the rules above.
