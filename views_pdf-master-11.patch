@@ -1,18 +1,27 @@
 diff --git a/src/Plugin/views/display/PDF.php b/src/Plugin/views/display/PDF.php
-index 02b0188..f454687 100644
+index 830d604..15f6317 100644
 --- a/src/Plugin/views/display/PDF.php
 +++ b/src/Plugin/views/display/PDF.php
+@@ -123,7 +123,7 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+     return 'pdf';
+   }
+ 
+-  public static function buildResponse($view_id, $display_id, array $args = []) : StreamedResponse {
++  public static function buildResponse($view_id, $display_id, array $args = []) : CacheableResponse {
+     $build = static::buildBasicRenderable($view_id, $display_id, $args);
+ 
+     // Set up an empty response, so for example RSS can set the proper
 @@ -138,9 +138,24 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
      /** @var \Drupal\views\ViewExecutable $view */
-     $view = $build['#view'];
+     $view = $build['view_build']['#view'];
  
 -    $response->setContent($view->pdf->Output());
 -    $cache_metadata = CacheableMetadata::createFromRenderArray($build);
 -    $response->addCacheableDependency($cache_metadata);
 +    if ($view && isset($view->pdf)) {
-+      if ($view->initStyle()) {
-+        $view->style_plugin->getField(1, 1);
-+      }
++       if ($view->initStyle()) {
++         $view->style_plugin->getField(1, 1);
++       }
 +
 +      $view->setTitle($view->query->displayHandler->getOption('file_name_pattern'));
 +      $path_to_store_pdf = \Drupal::service('transliteration')->removeDiacritics($view->getTitle());
@@ -34,13 +43,14 @@ index 02b0188..f454687 100644
        'desc' => $this->t('Define a CSS file attached to all HTML output.'),
      );
  
+-
 +    if ($this->getOption('file_name_pattern') === '') {
 +      $pdf_file = $this->t('None');
 +    }
 +    else {
 +      $pdf_file = $this->getOption('file_name_pattern');
 +    }
- 
++ 
 +    $options['file'] = [
 +      'category' => 'page',
 +      'title' => $this->t('PDF File Settings'),
@@ -50,12 +60,11 @@ index 02b0188..f454687 100644
    }
  
    /**
-@@ -1048,6 +1075,15 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+@@ -1048,6 +1075,14 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
            '#default_value' => $this->getOption('css_file'),
          ];
          break;
-+
-+      case 'file':
++        case 'file':
 +        $form['#title'] .= $this->t('CSS File');
 +        $form['file_name_pattern'] = [
 +            '#type' => 'textfield',
@@ -66,7 +75,7 @@ index 02b0188..f454687 100644
      }
    }
    /**
-@@ -1129,6 +1165,9 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
+@@ -1129,6 +1164,9 @@ class PDF extends PathPluginBase implements ResponseDisplayPluginInterface {
          $this->setOption('css_file', $form_state->getValue('css_file'));
          break;
  
