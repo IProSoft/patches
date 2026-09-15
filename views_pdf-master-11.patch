@@ -94,3 +94,16 @@ index 830d604..9ad2533 100644
      }
    }
  
+diff --git a/src/Plugin/views/row/PDFFields.php b/src/Plugin/views/row/PDFFields.php
+index 3ea80af..3c2ef01 100644
+--- a/src/Plugin/views/row/PDFFields.php
++++ b/src/Plugin/views/row/PDFFields.php
+@@ -145,7 +145,7 @@ class PDFFields extends RowPluginBase {
+ 
+       $form['formats'][$field] = [
+         '#type' => 'details',
+-        '#title' => Html::escape($option),
++        '#title' => Html::escape((string)$option),
+         '#open' => $keepDetailsOpen,
+       ];
+       $keepDetailsOpen = FALSE;
