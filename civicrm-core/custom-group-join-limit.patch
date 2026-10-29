@@ -1,0 +1,45 @@
+diff --git a/CRM/Core/BAO/CustomGroup.php b/CRM/Core/BAO/CustomGroup.php
+--- a/CRM/Core/BAO/CustomGroup.php
++++ b/CRM/Core/BAO/CustomGroup.php
+@@ -742,18 +742,30 @@ class CRM_Core_BAO_CustomGroup extends CRM_Core_DAO_CustomGroup implements Civi\
+    *   Array of tables in which this entity has data.
+    */
+   public static function buildEntityTreeSingleFields(&$groupTree, $entityID, $entitySingleSelectClauses, $singleFieldTablesWithEntityData) {
+-    $select = implode(', ', $entitySingleSelectClauses);
+-    $fromSQL = " (SELECT $entityID as entity_id ) as first ";
+-    foreach ($singleFieldTablesWithEntityData as $table) {
+-      $fromSQL .= "\nLEFT JOIN $table USING (entity_id)";
++    // MySQL allows a maximum of 61 tables in a JOIN (1 base table + 60 joined).
++    // Split tables into chunks of 50 to avoid error 1116 on large schemas.
++    foreach (array_chunk($singleFieldTablesWithEntityData, 50) as $tableChunk) {
++      $tableLookup = array_fill_keys($tableChunk, TRUE);
++      $chunkSelectClauses = array_filter($entitySingleSelectClauses, static function ($clause) use ($tableLookup) {
++        [$table] = explode('.', trim($clause), 2);
++        return isset($tableLookup[$table]);
++      });
++      if (empty($chunkSelectClauses)) {
++        continue;
++      }
++      $select = implode(', ', $chunkSelectClauses);
++      $fromSQL = " (SELECT $entityID as entity_id ) as first ";
++      foreach ($tableChunk as $table) {
++        $fromSQL .= "\nLEFT JOIN $table USING (entity_id)";
++      }
++
++      $query = "
++        SELECT $select
++        FROM $fromSQL
++        WHERE first.entity_id = $entityID
++      ";
++      self::buildTreeEntityDataFromQuery($groupTree, $query, $tableChunk);
+     }
+-
+-    $query = "
+-      SELECT $select
+-      FROM $fromSQL
+-      WHERE first.entity_id = $entityID
+-    ";
+-    self::buildTreeEntityDataFromQuery($groupTree, $query, $singleFieldTablesWithEntityData);
+   }
+ 
+   /**
