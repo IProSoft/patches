@@ -1,12 +1,11 @@
 diff --git a/CRM/Mailing/Event/BAO/MailingEventUnsubscribe.php b/CRM/Mailing/Event/BAO/MailingEventUnsubscribe.php
-index 8411cd4780..e07bf48b32 100644
 --- a/CRM/Mailing/Event/BAO/MailingEventUnsubscribe.php
 +++ b/CRM/Mailing/Event/BAO/MailingEventUnsubscribe.php
-@@ -289,6 +289,7 @@ WHERE  email = %2
-    * @throws \CRM_Core_Exception
-    */
-   public static function send_unsub_response($queue_id, $groups, $is_domain, $job) {
+@@ -304,6 +304,7 @@
+ 
+     $component = new CRM_Mailing_BAO_MailingComponent();
+ 
 +    return;
-     $domain = CRM_Core_BAO_Domain::getDomain();
-     $mailingObject = new CRM_Mailing_DAO_Mailing();
-     $mailingTable = $mailingObject->getTableName();
+     if ($is_domain) {
+       $component->id = $dao->optout_id;
+     }
